@@ -1,0 +1,29 @@
+---
+dockerRepository:
+  developmentRepositoryName: mycujoo-ping-pong-demo # original name is hidden #
+  branchRepositoryName:
+    master: mycujoo-ping-pong-demo # original name is hidden #
+  registryRoot: eu.gcr.io
+application:
+  name: micrometer
+  pathToKubernetesFiles: k8s
+  version: "0.0.1"
+  kubernetesTemplate:
+    branchVariables:
+      development:
+      - SECRETS_LOCATION=development
+      - API_GATEWAY_URL=micrometer.mycujoo-ping-pong-demo # original url is hidden #
+      - MIN_REPLICA=1
+      - MAX_REPLICA=1
+      - CPU_TARGET=75
+      - MEMORY_TARGET=75
+      - MYCUJOO_ENVIRONMENT=ping-pong-conference-talk
+    globalVariables:
+    - MAIN_DOMAIN=mycujoo-ping-pong-demo # original domain is hidden #
+    - INGRESS_CLASS=kong
+    - PORT=8444
+    - SERVICE_PORT=8444
+    - PORT_NAME=micrometer-port
+    - APP_NAME={{.KD_APP_NAME}}
+    - NAMESPACE=ping-pong-conference-talk
+    - IMAGE={{.KD_IMAGE_FULL_PATH}}

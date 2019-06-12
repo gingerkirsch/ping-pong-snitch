@@ -1,0 +1,58 @@
+---
+defaults: &defaults
+  working_directory: /ping-pong-micrometer-metrics
+  environment:
+    IMAGE_NAME: micrometer
+
+    GOOGLE_PROJECT_NAME_DEVELOPMENT: mycujoo-ping-pong-demo # original name is hidden #
+    GOOGLE_CLUSTER_NAME_DEVELOPMENT: mycujoo-ping-pong-demo # original name is hidden #
+    GOOGLE_COMPUTE_ZONE_DEVELOPMENT: mycujoo-ping-pong-demo # original name is hidden #
+
+    DEBIAN_FRONTEND: noninteractive
+    APPLICATION_PORT: 8666
+    VERSION: 1.0
+
+version: 2
+jobs:
+  build_micrometer:
+    <<: *defaults
+    docker:
+      - image: mycujoo/gcloud-docker:latest
+    steps:
+      - checkout
+      - setup_remote_docker
+
+      - run:
+          name: Configure environment
+          command: |
+            chmod +x configure.sh
+            ./configure.sh
+            docker login -u _json_key -p "$(cat /root/gcp-key.json)" https://eu.gcr.io
+
+      - run:
+          name: Install kube-deploy
+          command: |
+            wget https://s3.eu-central-1.amazonaws.com/binary-distribution/kube-deploy-linux-amd64 -O /usr/local/bin/kube-deploy
+            chmod +x /usr/local/bin/kube-deploy
+
+      ### kube-deploy steps start ###
+      - run:
+          name: Build and Push Profile Kubernetes Image
+          command: |
+            kube-deploy build --force-push-image --override-dirty-workdir
+
+      - run:
+          name: Deploy Profile Kubernetes Image
+          command: |
+            kube-deploy start-rollout --no-canary
+
+workflows:
+  version: 2
+  build_test_deploy:
+    jobs:
+      - build_micrometer:
+          context: ping-pong-conference-talk
+          filters:
+            branches:
+              only:
+                - development

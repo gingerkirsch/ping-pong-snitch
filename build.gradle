@@ -1,0 +1,57 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '4.0.1'
+    id 'idea'
+    id 'checkstyle'
+    id "com.jfrog.artifactory" version "4.8.1"
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+    maven {
+        url "http://packages.confluent.io/maven/"
+    }
+}
+
+mainClassName = 'io.vertx.core.Launcher'
+version = '1.0'
+
+checkstyle {
+    configFile = file("src/main/resources/google_checks.xml")
+    toolVersion = '7.6.1'
+}
+
+compileJava {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+    group = 'tv.mycujoo.community'
+    mainClassName = 'tv.mycujoo.community.metrics.Launcher'
+}
+
+shadowJar {
+    classifier = 'fat'
+    manifest {
+        attributes 'Main-Verticle': 'tv.mycujoo.community.metrics.MainVerticle'
+    }
+    mergeServiceFiles {
+        include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
+    }
+    archiveName = "micrometer-fat.jar"
+}
+
+ext {
+    vertxVersion = '3.7.0'
+}
+
+dependencies {
+    compile 'io.micrometer:micrometer-registry-prometheus:1.1.4'
+    compile "io.vertx:vertx-micrometer-metrics:$vertxVersion"
+    compile "io.vertx:vertx-core:$vertxVersion"
+    compile "io.vertx:vertx-hazelcast:$vertxVersion"
+    compile "com.hazelcast:hazelcast-kubernetes:1.3.1"
+    compile "io.vertx:vertx-web:$vertxVersion"
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.26'
+
+}
